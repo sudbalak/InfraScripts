@@ -1,0 +1,25 @@
+- name: Validate Kubernetes Deployment
+  hosts: localhost
+  tasks:
+    - name: Check Pods Status
+      kubernetes.core.k8s_info:
+        kubeconfig: /root/.kube/config
+        kind: Pod
+        namespace: default
+      register: pod_info
+    - name: Ensure Pods are Running
+      assert:
+        that:
+          - pod_info.resources | selectattr('status.phase', 'equalto', 'Running') | list | length == 3
+        fail_msg: "Not all pods are running"
+    - name: Check Service Status
+      kubernetes.core.k8s_info:
+        kubeconfig: /root/.kube/config
+        kind: Service
+        namespace: default
+      register: svc_info
+    - name: Ensure Service is Created
+      assert:
+        that:
+          - svc_info.resources | selectattr('metadata.name', 'equalto', 'microservice-demo') | list | length == 1
+        fail_msg: "Service is not created"

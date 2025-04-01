@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: microservice-demo
+  namespace: default
+spec:
+  selector:
+    app: microservice-demo
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80

@@ -1,0 +1,13 @@
+- name: Deploy Sample Microservice Application
+  hosts: localhost
+  tasks:
+    - name: Apply Sample Deployment Manifest
+      kubernetes.core.k8s:
+        kubeconfig: /root/.kube/config
+        state: present
+        definition: "{{ lookup('file', 'deployment.yaml') }}"
+    - name: Apply Service Manifest
+      kubernetes.core.k8s:
+        kubeconfig: /root/.kube/config
+        state: present
+        definition: "{{ lookup('file', 'service.yaml') }}"
