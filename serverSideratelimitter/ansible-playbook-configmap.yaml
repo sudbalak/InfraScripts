@@ -1,0 +1,44 @@
+---
+- name: Update NGINX ConfigMap for Rate Limiting
+  hosts: localhost
+  tasks:
+    - name: Update rate limit configuration in ConfigMap
+      ansible.builtin.copy:
+        content: |
+          events {
+            worker_connections 1024;
+          }
+
+          http {
+            include       mime.types;
+            default_type  application/octet-stream;
+
+            # Define the rate limit zone (e.g., 10 requests per second per client)
+            limit_req_zone $binary_remote_addr zone=one:10m rate=10r/s;
+
+            server {
+              listen 80;
+
+              location / {
+                # Enable rate limiting using the defined zone
+                limit_req zone=one burst=5 nodelay;
+                root /usr/share/nginx/html;
+                index index.html;
+              }
+            }
+          }
+        dest: /tmp/nginx.conf
+
+    - name: Apply updated ConfigMap
+      kubernetes.core.k8s:
+        kind: ConfigMap
+        api_version: v1
+        name: rate-limiter-config
+        namespace: default
+        state: present
+        definition:
+          metadata:
+            name: rate-limiter-config
+            namespace: default
+          data:
+            nginx.conf: "{{ lookup('file', '/tmp/nginx.conf') }}"

@@ -1,0 +1,36 @@
+---
+- name: Apply NGINX ConfigMap Without Rate Limiting
+  hosts: localhost
+  tasks:
+    - name: Define ConfigMap content
+      copy:
+        content: |
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: rate-limiter-config
+            namespace: default
+          data:
+            nginx.conf: |
+              events {
+                worker_connections 1024;
+              }
+
+              http {
+                include       mime.types;
+                default_type  application/octet-stream;
+
+                server {
+                  listen 80;
+
+                  location / {
+                    root /usr/share/nginx/html;
+                    index index.html;
+                  }
+                }
+              }
+        dest: /tmp/nginx-configmap-no-ratelimit.yaml
+
+    - name: Apply ConfigMap using kubectl
+      command: >
+        kubectl apply -f /tmp/nginx-configmap-no-ratelimit.yaml
